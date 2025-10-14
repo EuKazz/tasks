@@ -32,5 +32,44 @@ func parseAndValidateURL(rawURL string) (URLComponents, bool) {
 	// Input: "http://localhost/health"
 	// Output: URLComponents{Protocol: "http", Host: "localhost",
 	// Port: "80", Path: "/health"}, true
-	return URLComponents{}, false
+parsedURL, err:= url.Parse(rawURL)
+  if err!=nil{
+    return URLComponents{},false
+  }
+  protocol:= parsedURL.Scheme
+  if protocol != "http" && protocol !="https"{
+    
+     return URLComponents{},false
+  }
+  host:= parsedURL.Hostname()
+  if host == ""{
+    
+    return URLComponents{},false
+  }
+  port:= parsedURL.Port()
+  if port == ""{
+    if protocol == "http"{
+      port = "80"
+    }else if protocol =="https"{
+      port ="443"
+    }else{
+      return URLComponents{},false
+    }
+  }
+  portToint,err:= strconv.Atoi(port)
+  if err!=nil{
+    return URLComponents{},false
+  }
+  if portToint<1 || portToint>65535{
+   
+    return URLComponents{},false
+  }
+  finPort:= strconv.Itoa(portToint)
+  res:= URLComponents{
+    Protocol: protocol,
+    Host: host,
+    Port: finPort,
+    Path: parsedURL.Path
+  }
+	return res, true
 }
