@@ -24,6 +24,20 @@ func extractURLParams(r *http.Request) (map[string]string, error) {
 	//
 	// Input: URL "/api/users//posts/456"
 	// Output: nil, error("parameter 'id' cannot be empty")
-	
-	return nil, nil
+  res:= make(map[string]string)
+  parts:= strings.Split(r.URL.Path, "/")
+    if len(parts) != 6 || parts[1] != "api" {
+        return nil, errors.New("not found /api/wrong")
+    }
+  id:= parts[3]
+  if id ==""{
+    return nil, errors.New("parameter 'id' cannot be empty")
+  }
+  res["id"] = id
+  postId:= parts[5]
+  if postId ==""{
+    return nil, errors.New("parameter 'postId' cannot be empty")
+  }
+  res["postId"] = postId
+	return res, nil
 }
