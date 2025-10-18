@@ -18,3 +18,43 @@
 	// message = "heartbeat"
 	// Output: канал с периодическими "heartbeat" сообщениями,
 	// функция для остановки
+package main
+
+import (
+	"context"
+	"time"
+)
+
+func startPeriodicSender(interval time.Duration, message string) (chan string, context.CancelFunc) {
+if interval<=0{
+  return nil, nil
+}
+  if message == ""{
+    return nil, nil
+  }
+  context:= context.Background()
+  //создаем контекст с возможностью отмены
+    ctx, cancel:= context.WithCancel(context)
+ //создаем канал для передачи сообщений
+  readCh:= make(chan string)
+//запуск анонимной горутины
+  go func(){
+    //таймер, который будет слать сигнал с заданным интервалом
+     ticker := time.NewTicker(interval)
+     defer ticker.Stop()
+    //при завершении горутины закроем канал
+    defer close(readCh)
+    for{
+      select{
+        //если контект был отменен - завершим горутины
+      case  <-ctx.Done():
+      return 
+        //если пришел тик - отправляем сообщение в канал
+    case <- ticker.C:
+      readCh<-message
+    }   
+    }
+  }()
+//вернули канал для чтения сообщений и функцию отмены
+	return readCh, cancel
+}
