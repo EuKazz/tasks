@@ -19,12 +19,14 @@ package main
 
 import "net/http"
 
-
+//функция - обертка для хэндлера
 type MiddleWare func(http.Handler) http.Handler
 
 func Chain(middlewares ...MiddleWare) MiddleWare {
 	return func(next http.Handler) http.Handler {
+		//проходим все мидлвэр в обратном порядке
 		for i := len(middlewares) - 1; i >= 0; i-- {
+			//для каждого мидлвэр вызываем его и оборачиваем вокруг текущего
 			next = middlewares[i](next)
 		}
 		return next
