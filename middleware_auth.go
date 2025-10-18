@@ -18,3 +18,27 @@
 //
 // Input: Запрос без заголовка Authorization или с невалидным токеном
 // Output: Ответ со статусом 401 Unauthorized
+package main
+import(
+  "strings"
+  "net/http"
+)
+func Authorization(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+      authedHeader:= r.Header.Get("Authorization")
+      if !strings.HasPrefix(authedHeader, "Bearer "){
+        w.WriteHeader(http.StatusUnauthorized)
+        w.Write([]byte(http.StatusText(http.StatusUnauthorized)))
+        return
+      }
+      validToken:= "valid-token-123"
+      token := strings.TrimPrefix(authedHeader, "Bearer ")
+      if token!= validToken{
+        w.WriteHeader(http.StatusUnauthorized)
+        w.Write([]byte(http.StatusText(http.StatusUnauthorized)))
+        return
+      }
+      
+      next.ServeHTTP(w,r)
+    })
+}
