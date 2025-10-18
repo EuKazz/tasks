@@ -18,3 +18,28 @@
 	//
 	// Input: email = "", secret = "mysecretkey123"
 	// Output: "", error("email cannot be empty")
+package main
+
+import (
+	"errors"
+	"github.com/golang-jwt/jwt/v5"
+)
+
+func CreateJWTToken(email string, secret string) (string, error) {
+  if email == ""{
+     return "", errors.New("email cannot be empty")
+  }
+  if len(secret)<8{
+    return "", errors.New("secret must be at least 8 characters long")
+  }
+  claims:=jwt.MapClaims{
+    "email": email,
+  }
+  token:= jwt.NewWithClaims(jwt.SigningMethodHS256, claims )
+  ss,err:= token.SignedString([]byte(secret))
+  if err!=nil{
+    return "", err
+  }
+	
+	return ss, nil
+}
