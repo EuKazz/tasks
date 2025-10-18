@@ -17,3 +17,20 @@
 	//
 	// Input: POST запрос на /api/data, выполняющийся 75ms
 	// Output: "POST /api/data completed in 75ms"
+package main
+
+import (
+	"log"
+	"net/http"
+	"time"
+)
+
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    	start:= time.Now()
+        next.ServeHTTP(w,r)
+        duration:= time.Since(start).Milliseconds()
+        log.Printf("%s %s completed in %dms", r.Method, r.URL.Path, duration)
+      
+	})
+}
