@@ -20,3 +20,54 @@
 // Input: mockRepo.FindByEmail("test@example.com")
 // Output: User{ID: 1, Email: "test@example.com",
 // Password: "hashed123"}, nil
+package main
+
+import "errors"
+
+
+
+type User struct {
+	ID       uint   `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type UserRepository interface {
+	Create(user User) (User, error)
+	FindByEmail(email string) (User, error)
+}
+
+type MockUserRepository struct {
+	users []User
+	nextID uint
+}
+
+func NewMockUserRepository() *MockUserRepository {
+	return &MockUserRepository{
+		users:  make([]User, 0),
+		nextID: 1,
+	}
+}
+
+func (m *MockUserRepository) Create(user User) (User, error) {
+	//check if user if unique
+  for _, u:= range m.users{
+      if u.Email == user.Email{
+        return User{}, errors.New("user with email already exists")
+      }
+    }
+  user.ID = m.nextID
+  m.nextID++
+  m.users = append(m.users, user)
+  return user, nil
+}
+
+func (m *MockUserRepository) FindByEmail(email string) (User, error) {
+	for _, u:= range m.users{
+      if u.Email == email{
+        return u, nil
+      }
+    }
+  
+	return User{}, errors.New("user not found")
+}
