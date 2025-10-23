@@ -31,36 +31,51 @@ type User struct {
 
 
 func initData(db *gorm.DB, user User) error {
-  
+  //создает новую строку
   result:=db.Create(&user)
-
+//возвращает ошибку вставки
 	return result.Error
 }
 
 func removeData(db *gorm.DB) error {
+  //удаление всех юзеров из таблицы (физически - а не мягкое удаление)
 	return db.Unscoped().
       Delete(&User{}).
       Error
+  //возвращает ошибку при неудачном выполнении
 	
 }
 
-func initDb() *gorm.DB {
-	err := godotenv.Load(".env")
-	if err != nil {
-		panic(err)
-	}
-
-	db, err := gorm.Open(postgres.Open(os.Getenv("DSN")), &gorm.Config{})
-	if err != nil {
-		panic(err)
-	}
-	return db
+func setupTestDB() (*gorm.DB, func(), error) {
+    db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+    if err != nil {
+        return nil, nil, err
+    }
+    // Автомиграция структуры таблицы
+    if err := db.AutoMigrate(&User{}); err != nil {
+        return nil, nil, err
+    }
+    // Функция очистки и закрытия
+    cleanup := func() {
+        // Для sqlite in-memory — просто ничего делать не надо или можно явно удалить
+        sqlDB, _ := db.DB()
+        sqlDB.Close()
+    }
+    return db, cleanup, nil
 }
 
 func main() {
-  db := initDb()
-  user := User{Email: "test@example.com", Password: "hashed123"}
-  initData(db, user)
-  //
-  removeData(db)
+  db, cleanup, err := setupTestDB()
+    if err != nil {
+        t.Fatalf("ошибка инициализации БД: %v", err)
+    }
+  defer cleanup()
+  testUser := User{Email: "test@example.com", Password: "hashed123"}
+    if err := initData(db, testUser); err != nil {
+        t.Fatalf("initData: %v", err)
+    }
+
+    if err := removeData(db); err != nil {
+        t.Fatalf("removeData: %v", err)
+    }
 }
